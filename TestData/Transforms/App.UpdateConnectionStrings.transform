@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<configuration xmlns:xdt="http://schemas.microsoft.com/XML-Document-Transform">
+	<connectionStrings>
+		<add xdt:Transform="InsertIfMissing" xdt:Locator="Match(name)" name="DB:SingleSignOn"  />
+		<add xdt:Transform="Replace" xdt:Locator="Match(name)" name="DB:SingleSignOn" connectionString="Data Source=FMSNDBX-SQL-1; Initial Catalog=FM3SecurityMaster; Integrated Security=true" providerName="System.Data.SqlClient" />
+	</connectionStrings>
+</configuration>

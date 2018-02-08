@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<configuration xmlns:xdt="http://schemas.microsoft.com/XML-Document-Transform">
+	  <system.net>
+	    <mailSettings  xdt:Transform="Replace">
+	      <smtp deliveryMethod="Network" from="noreply@harmonic.ky">
+	        <network host="mail.harmonic.ky"
+	                 port="25"
+	                 defaultCredentials="true"
+	                 enableSsl="true" />
+	      </smtp>
+	    </mailSettings>
+	  </system.net>
+  </configuration>

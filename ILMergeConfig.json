@@ -1,0 +1,6 @@
+﻿{
+  "General": {
+    "OutputFile": "$(TargetDir)\\XDT.dll",
+    "AlternativeILMergePath": "$(SolutionDir)\\tools\\ILMerge.exe"
+  }
+}

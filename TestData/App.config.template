@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8"?>
+<configuration>
+  <configSections>
+    <section name="castle" type="Castle.Windsor.Configuration.AppDomain.CastleSectionHandler, Castle.Windsor" />
+  </configSections>
+  <startup>
+    <supportedRuntime version="v4.0" sku=".NETFramework,Version=v4.5" />
+  </startup>
+  <appSettings>
+    <add key="CslaDataPortalProxy" value="WaveLength.RemotingInfrastructure.ConfigurableDataPortalProxy, WaveLength.RemotingInfrastructure"/>
+    <add key="CslaAuthentication" value="Windows"/>
+    <add key="serviceSiteId" value="2" />
+    <add key="mailFrom" value="noreply@harmonic.ky" />
+    <add key="mailTo" value="christopher.mcgrath@harmonic.ky" />
+    <add key="mailSubject" value="[Web Dashboard, {result}] Data Fetcher :: LOCAL - {dbname}" />
+
+    <add key="forceDataFetch" value="true" />
+    <add key="deleteOutdatedSnapshots" value="true" />
+    <add key="fetchQueueProcessingEnabled" value="false" />
+    <add key="staticDates" value="2016-03-31;2016-06-30;2016-07-31;2016-08-31;2016-09-30;2016-10-31;2016-11-30;2016-12-31" />
+
+    <add key="fetchAttemptsCount" value="3" />
+    <add key="fetchAttemptsTimeout" value="30" />
+
+    <add key="defaultCulture" value="en-US" />
+    <add key="reportConfig"  value="ReportConfigs/ReportConfig.Local.xml" />
+    <add key="workingdayDuration"  value="23:00:00" />
+    <add key="holidayDuration"  value="23:00:00" />
+
+    <add key="ADAuthentication" value="Required" />
+    <add key="Authentication" value="CSLA" />
+    <add key="ConnectionStringsEncrypted" value="true" />
+    <add key="DisableDirectSQLCall" value="false" />
+    
+    <add key="MarketData:MaxResults" value="10000" />
+  </appSettings>
+  <system.net>
+    <mailSettings>
+      <smtp deliveryMethod="Network" from="mikhail.bakalov@harmonic.ky">
+        <network host="mail.somehost.com"
+                 port="25"
+                 defaultCredentials="true" />
+      </smtp>
+    </mailSettings>
+  </system.net>
+  <connectionStrings>
+ <add name="DB:SingleSignOn" connectionString="Data Source=localhost; Initial Catalog=FM3SecurityMaster; Integrated Security=true" providerName="System.Data.SqlClient" />
+  </connectionStrings>
+
+  <castle>
+    <properties>
+      <numerixUrl>https://numerix.harmonic.ky/Development/NumeriXService/NumeriXService.asmx</numerixUrl>
+      <numerixUsername>NumeriXAccess</numerixUsername>
+      <numerixPassword>4CDjQBITQVfXnneH3iUK</numerixPassword>
+    </properties>
+    <components>
+      <component id="pmsStartupCacheProvider" service="WaveLength.PMSObjects.Helpers.ICachedTypesProvider, BusinessObjects" type="WaveLength.PMSObjects.Helpers.PMSCachedTypesProvider, BusinessObjects"/>
+      <component id="cashTransactionPersistenceHandler" serivce="BusinessObjects.Interfaces.ICashTransactionPersistenceHandler, BusinessObjects" type="WaveLength.PMSObjects.CashTrans.TradeCashTransactionPersistenceHandler, BusinessObjects"/>
+      <component id="irrCalculator" service="WaveLength.FM.Models.Interfaces.IIRRCalculator, WaveLength.FM.Models.Interfaces" type="WaveLength.FM.Models.Harmonic.IRRCalculator, WaveLength.FM.Models.Harmonic" />
+
+      <!-- 
+      numerixValidatingDecorator has the same service value as the optionCalculator. Which one will IoC.Resolve<IBlackScholesCalculator> return? 
+      It will return numerixValidatingDecorator because it is registered first in the config file. Which is what we need.
+      -->
+      <component
+          id="numerixValidatingDecorator"
+          service="WaveLength.FM.Models.Interfaces.IBlackScholesCalculator, WaveLength.FM.Models.Interfaces"
+          type="WaveLength.FM.Models.NumeriXClient.ValidatingDecorator, WaveLength.FM.Models.NumeriXClient">
+        <parameters>
+          <inner>${optionCalculator}</inner>
+        </parameters>
+      </component>
+      <component id="optionCalculator" service="WaveLength.FM.Models.Interfaces.IBlackScholesCalculator, WaveLength.FM.Models.Interfaces" type="WaveLength.FM.Models.NumeriXClient.NumeriXCalculatorService, WaveLength.FM.Models.NumeriXClient">
+        <parameters>
+          <serverURI>#{numerixUrl}</serverURI>
+          <userName>#{numerixUsername}</userName>
+          <password>#{numerixPassword}</password>
+        </parameters>
+      </component>
+      <!-- 
+      IFixedRateBondCalculator is implemented by the same type as optionCalculator. We should get rid of the separate component and use Forwarded Types (added in Windsor 2.1)
+      once we migrade to the 2.1 version. See here about forwarded types: http://www.castleproject.org/container/documentation/v21/manual/windsorconfigref.html
+      -->
+      <component id="fixedRateBondCalculator" service="WaveLength.FM.Models.Interfaces.IFixedRateBondCalculator, WaveLength.FM.Models.Interfaces" type="WaveLength.FM.Models.NumeriXClient.NumeriXCalculatorService, WaveLength.FM.Models.NumeriXClient">
+        <parameters>
+          <serverURI>#{numerixUrl}</serverURI>
+          <userName>#{numerixUsername}</userName>
+          <password>#{numerixPassword}</password>
+        </parameters>
+      </component>
+      <component id="fixedRateBondPricer" service="WaveLength.FM.Models.Interfaces.IFixedRateBondPricer, WaveLength.FM.Models.Interfaces" type="WaveLength.FM.Models.NumeriXClient.NumeriXCalculatorService, WaveLength.FM.Models.NumeriXClient">
+        <parameters>
+          <serverURI>#{numerixUrl}</serverURI>
+          <userName>#{numerixUsername}</userName>
+          <password>#{numerixPassword}</password>
+        </parameters>
+      </component>
+      <component id="convertibleBondPricer" service="WaveLength.FM.Models.Interfaces.IConvertibleBondPricer, WaveLength.FM.Models.Interfaces" type="WaveLength.FM.Models.NumeriXClient.NumeriXCalculatorService, WaveLength.FM.Models.NumeriXClient">
+        <parameters>
+          <serverURI>#{numerixUrl}</serverURI>
+          <userName>#{numerixUsername}</userName>
+          <password>#{numerixPassword}</password>
+        </parameters>
+      </component>
+      <component id="batchCalculator" service="WaveLength.FM.Models.Interfaces.IBatchCalculator, WaveLength.FM.Models.Interfaces" type="WaveLength.FM.Models.NumeriXClient.NumeriXCalculatorService, WaveLength.FM.Models.NumeriXClient">
+        <parameters>
+          <serverURI>#{numerixUrl}</serverURI>
+          <userName>#{numerixUsername}</userName>
+          <password>#{numerixPassword}</password>
+        </parameters>
+      </component>
+    </components>
+  </castle>
+  <system.web>
+    <membership defaultProvider="ClientAuthenticationMembershipProvider">
+      <providers>
+        <add name="ClientAuthenticationMembershipProvider" type="System.Web.ClientServices.Providers.ClientFormsAuthenticationMembershipProvider, System.Web.Extensions, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35" serviceUri="" />
+      </providers>
+    </membership>
+    <roleManager defaultProvider="ClientRoleProvider" enabled="true">
+      <providers>
+        <add name="ClientRoleProvider" type="System.Web.ClientServices.Providers.ClientRoleProvider, System.Web.Extensions, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35" serviceUri="" cacheTimeout="86400" />
+      </providers>
+    </roleManager>
+  </system.web>
+</configuration>
